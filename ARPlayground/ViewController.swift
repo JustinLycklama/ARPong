@@ -16,7 +16,7 @@ struct Platform {
     }
 }
 
-class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
+class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SCNSceneRendererDelegate {
 
     @IBOutlet var ARSceneView: ARSCNView!
     var simSceneView: SCNView?
@@ -25,10 +25,21 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     
     var beams: [LightFragment]?
     
+    let arena = Arena(withOrigin: SCNVector3.init())
+    
     let configuration = ARWorldTrackingConfiguration()
+    
+    let newNode = SCNNode()
+    
+    let phoneBackPlaneNode = SCNNode()
+
+    let scene = SCNScene()
+    
+    let phoneDirectionNode = LightFragment(startPoint: SCNVector3(0, 0, 0.1), endPoint: SCNVector3(0.2, 0.1, 0), radius: 0.005, color: .yellow)
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         if Platform.isSimulator {
             
@@ -42,21 +53,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             simSceneView!.autoenablesDefaultLighting = true
             self.view = simSceneView
             
-            let scene = SCNScene()
             
             // 2
 //            let boxGeometry = SCNBox(width: 10.0, height: 10.0, length: 10.0, chamferRadius: 1.0)
 //            let boxNode = SCNNode(geometry: boxGeometry)
             
-            let arenaNode = Arena(withOrigin: SCNVector3.init())
-
-            let lightNode = Light(initialPosition: SCNVector3(0, 0.3 / 2.0, 0), direction: SCNVector3(1, 0, 0))
             
-            scene.rootNode.addChildNode(arenaNode)
-            scene.rootNode.addChildNode(lightNode)
+            scene.rootNode.addChildNode(arena)
             
             // 3
             simSceneView?.scene = scene
+            simSceneView?.delegate = self
             
             
             
@@ -75,21 +82,44 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             
             
             
-            let newNode = SCNNode()
-            let sphereGeo = SCNSphere(radius: 0.015)
+//            let sphereGeo = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
+//
+//            newNode.position = SCNVector3(0, 0, -0.3)
+//            newNode.geometry = sphereGeo
+//
+////                    sceneView.scene.rootNode.addChildNode(newNode)
+//            ARSceneView.pointOfView?.addChildNode(newNode)
             
-            newNode.position = SCNVector3(0, 0, -0.3)
-            newNode.geometry = sphereGeo
             
-            //        sceneView.scene.rootNode.addChildNode(newNode)
-            ARSceneView.pointOfView?.addChildNode(newNode)
+            let backPlaneGeo = SCNPlane(width: 0.1, height: 0.1)
             
-            if let pointOfView = ARSceneView.pointOfView {
-                print(pointOfView.frame)
-            }
+            let material = SCNMaterial()
+            material.isDoubleSided = true
+
+            backPlaneGeo.materials = [material]
+            
+            phoneBackPlaneNode.position = SCNVector3(0, 0, -0.3)
+            phoneBackPlaneNode.geometry = backPlaneGeo
+
+            
+            ARSceneView.scene = scene
+            
+            scene.rootNode.addChildNode(phoneBackPlaneNode)
+            
+            scene.rootNode.addChildNode(arena)
+            
+            arena.addChildNode(phoneDirectionNode)
+            
+            
+            
+//            if let pointOfView = ARSceneView.pointOfView {
+//                print(pointOfView.frame)
+//            }
             
             self.ARSceneView.debugOptions = [SCNDebugOptions.showWorldOrigin, SCNDebugOptions.showFeaturePoints]
             self.ARSceneView.automaticallyUpdatesLighting = true // Supposedly makes detecting faster
+        
+
         }
     }
     
@@ -97,10 +127,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         super.viewWillAppear(animated)
         
         if Platform.isSimulator {
-            NSLog("Hello!")
+            simSceneView?.isPlaying = true
         } else {
             // Create a session configuration
-            configuration.planeDetection = [.horizontal]
+//            configuration.planeDetection = [.horizontal]
             
             // Run the view's session
             ARSceneView.session.delegate = self
@@ -111,8 +141,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        // Pause the view's session
-        ARSceneView.session.pause()
+        if Platform.isSimulator {
+            simSceneView?.isPlaying = false
+        } else {
+        
+            // Pause the view's session
+            ARSceneView.session.pause()
+        }
     }
     
     func setupBeams(aFrame frame: ARFrame) {
@@ -139,7 +174,41 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        setupBeams(aFrame: frame)
+        if let parentForwardDirection = ARSceneView.pointOfView?.parentFront,
+            let parentPosition = ARSceneView.pointOfView?.position {
+            let newVec = arena.convertVector(parentForwardDirection, from: ARSceneView.pointOfView?.parent)
+            let newPos = arena.convertPosition(parentPosition, from: ARSceneView.pointOfView?.parent)
+            
+            phoneDirectionNode.update(startPoint: newPos + (newVec.normalized * 0.1), endPoint: newPos + newVec.normalized * 0.2)
+            
+            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
+        }
+        
+        if  let parentNode = ARSceneView.pointOfView?.parent,
+            let position = ARSceneView.pointOfView?.position,
+            let transform = ARSceneView.pointOfView?.transform {
+            
+
+//            phoneBackPlaneNode.position = SCNVector3Zero
+
+//            phoneBackPlaneNode.transform = transform
+//
+//            phoneBackPlaneNode.position = position - SCNVector3(0, 0, 0.3)
+
+
+            
+            
+            
+            
+
+//            let newTrans = parentNode.convertTransform(transform, to: arena)
+//            phoneDirectionNode.transform = transform
+//
+//            let newPos = parentNode.convertPosition(position, to: scene.rootNode)
+//            phoneBackPlaneNode.position = newPos - SCNVector3(0, 0, 0.3)
+        }
+        
+//        setupBeams(aFrame: frame)
     }
     
     // MARK: - ARSCNViewDelegate
@@ -170,6 +239,21 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     
     
     var highlightedPlane: Plane? = nil
+    
+    var lastUpdateDate: TimeInterval?
+    
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        
+        guard let last = lastUpdateDate else {
+            lastUpdateDate = time
+            return
+        }
+        
+        let delta = time - last
+        arena.update(deltaTime: delta)
+        
+        lastUpdateDate = time
+    }
     
     /**
      Called when a new node has been mapped to the given anchor.

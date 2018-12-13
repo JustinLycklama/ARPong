@@ -9,18 +9,42 @@
 import UIKit
 import ARKit
 
-typealias KeyFrameId = String
-typealias KeyFrameKey = String
+struct KeyFrameId {
+    let value: String
+    
+    static func == (lhs: KeyFrameId, rhs: KeyFrameId) -> Bool {
+        return lhs.value == rhs.value
+    }
+    
+    static func + (lhs: KeyFrameId, rhs: KeyFrameId) -> String {
+        return lhs.value + rhs.value
+    }
+}
 
-struct LightFragmentKeyFrame: Equatable {
+struct KeyFrameKey: Equatable, Hashable {
+    let value: String
+    
+    var hashValue: Int { get {return value.hashValue} }
+    
+    static func == (lhs: KeyFrameKey, rhs: KeyFrameKey) -> Bool {
+        return lhs.value == rhs.value
+    }
+}
+
+// This is a class, so when we update keyframes position, the reference is updated in our LightFragmentContainer
+class LightFragmentKeyFrame: Equatable {
     let id: KeyFrameId
     var position: SCNVector3
-    var direction: SCNVector3
+    var direction: SCNVector3?
     
-    init(position: SCNVector3, direction: SCNVector3) {
-        self.id = UUID().uuidString
+    init(position: SCNVector3, direction: SCNVector3?) {
+        self.id = KeyFrameId(value: UUID().uuidString)
         self.position = position
         self.direction = direction
+    }
+    
+    func setPosition(position: SCNVector3) {
+        self.position = position
     }
     
     static func == (lhs: LightFragmentKeyFrame, rhs: LightFragmentKeyFrame) -> Bool {
@@ -28,11 +52,11 @@ struct LightFragmentKeyFrame: Equatable {
     }
     
     func keyFrameKey(with keyFrame: LightFragmentKeyFrame) -> KeyFrameKey {
-        return self.id + keyFrame.id
+        return KeyFrameKey(value: self.id + keyFrame.id)
     }
 }
 
-struct LightFragmentContainer {
+public struct LightFragmentContainer {
     let fragment: LightFragment
     let startKeyFrame: LightFragmentKeyFrame
     let endKeyFrame: LightFragmentKeyFrame
@@ -41,22 +65,26 @@ struct LightFragmentContainer {
 class Light: SCNNode {
 
     var keyFrames = [LightFragmentKeyFrame]()
-    var fragments = [KeyFrameId : LightFragmentContainer]()
     
-    private let speed: SCNFloat = 1
+    // The fragment related to the
+    var fragments = [KeyFrameKey : LightFragmentContainer]()
+    
+    private let speed: SCNFloat = 0.05
     private let raduis: CGFloat = 0.005
     private let color: UIColor = .red
     
     init(initialPosition: SCNVector3, direction: SCNVector3) {
         super.init()
         
+        let movement = direction.normalized * speed
+        keyFrames.append(LightFragmentKeyFrame(position: initialPosition + movement, direction: nil))
+        
         keyFrames.append(LightFragmentKeyFrame(position: initialPosition, direction: direction))
         
-        let movement = direction.normalized * speed
-        keyFrames.append(LightFragmentKeyFrame(position: initialPosition + movement, direction: SCNVector3.init()))
+        
 
-        let secondMovement = SCNVector3(0, 1, 0).normalized * speed
-        keyFrames.append(LightFragmentKeyFrame(position: initialPosition + movement + secondMovement, direction: secondMovement))
+//        let secondMovement = SCNVector3(0, 1, 0).normalized * speed
+//        keyFrames.append(LightFragmentKeyFrame(position: initialPosition + movement + secondMovement, direction: secondMovement))
 
         updateFragments()
     }
@@ -65,14 +93,54 @@ class Light: SCNNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // Perform movement. Update the virtual positions of the light
-    public func updateKeyFrames() {
+    public func getLeadingFragment() -> LightFragmentContainer? {
+        if keyFrames.count >= 2 {
+            let leadingKeyFrame = keyFrames[keyFrames.count - 1]
+            let previousKeyFrame = keyFrames[keyFrames.count - 2]
+            
+            let keyFrameKey = leadingKeyFrame.keyFrameKey(with: previousKeyFrame)
+            
+            return fragments[keyFrameKey]
+        }
         
+        return nil
+    }
+    
+    // Perform movement. Update the virtual positions of the light
+    public func updateKeyFrames(distance: Float) {
+        for i in 0..<keyFrames.count {
+            let keyFrame = keyFrames[i]
+
+            guard let direction = keyFrame.direction else {
+                continue
+            }
+            
+            keyFrames[i].setPosition(position: keyFrame.position + (direction.normalized * distance))
+        }
+    }
+    
+    private let err: SCNFloat = 0.0001 // Avoid colliding again with this error offset
+    
+    public func createNewFragment(cutPosition: SCNVector3, direction: SCNVector3) {
+     
+        // Our last keyframe should stop moving at this position
+        if keyFrames.count > 0,
+            let lastDirection = keyFrames[keyFrames.count - 1].direction {
+            keyFrames[keyFrames.count - 1].position = cutPosition + (lastDirection * -err)
+            keyFrames[keyFrames.count - 1].direction = nil
+        }
+        
+        keyFrames.append(LightFragmentKeyFrame(position: cutPosition + (direction * err), direction: direction))
+        
+        NSLog("Start")
+        for keyFrame in keyFrames {
+            NSLog(keyFrame.direction?.description() ?? "nil")
+        }
+        NSLog("End")
     }
     
     // Update the Node objects to reflect our virtual positions
     public func updateFragments() {
-        
         
         var preiviousOptional: LightFragmentKeyFrame? = nil
         for keyFrame in keyFrames {

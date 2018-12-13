@@ -17,6 +17,7 @@
 		7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F9C21928782000EA5F9 /* LightFragment.swift */; };
 		7D36F01021BC6BA8002A2371 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F00F21BC6BA8002A2371 /* Light.swift */; };
 		7D36F01221BC7085002A2371 /* SCNVector3+MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */; };
+		7D4C39D621C0C9DE008BECA6 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C39D521C0C9DE008BECA6 /* Extensions.swift */; };
 		7DA0C4F621ACF1EF007FA107 /* Arena.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA0C4F521ACF1EF007FA107 /* Arena.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		7D285F9C21928782000EA5F9 /* LightFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightFragment.swift; sourceTree = "<group>"; };
 		7D36F00F21BC6BA8002A2371 /* Light.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
 		7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+MathUtils.swift"; sourceTree = "<group>"; };
+		7D4C39D521C0C9DE008BECA6 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		7DA0C4F521ACF1EF007FA107 /* Arena.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Arena.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -78,6 +80,7 @@
 				7D285F9C21928782000EA5F9 /* LightFragment.swift */,
 				7DA0C4F521ACF1EF007FA107 /* Arena.swift */,
 				7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */,
+				7D4C39D521C0C9DE008BECA6 /* Extensions.swift */,
 			);
 			path = ARPlayground;
 			sourceTree = "<group>";
@@ -157,6 +160,7 @@
 				7D36F01221BC7085002A2371 /* SCNVector3+MathUtils.swift in Sources */,
 				7D36F01021BC6BA8002A2371 /* Light.swift in Sources */,
 				7D285F8B219235DF000EA5F9 /* ViewController.swift in Sources */,
+				7D4C39D621C0C9DE008BECA6 /* Extensions.swift in Sources */,
 				7D285F9B21927E1E000EA5F9 /* Plane.swift in Sources */,
 				7DA0C4F621ACF1EF007FA107 /* Arena.swift in Sources */,
 				7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */,
