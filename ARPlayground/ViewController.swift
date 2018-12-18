@@ -16,6 +16,13 @@ struct Platform {
     }
 }
 
+struct PlaneConstruction {
+    let position: SCNVector3
+    let normal: SCNVector3
+    let width: SCNFloat
+    let height: SCNFloat
+}
+
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SCNSceneRendererDelegate {
 
     @IBOutlet var ARSceneView: ARSCNView!
@@ -181,7 +188,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
             
             phoneDirectionNode.update(startPoint: newPos + (newVec.normalized * 0.1), endPoint: newPos + newVec.normalized * 0.2)
             
-            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
+//            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
         }
         
         if  let parentNode = ARSceneView.pointOfView?.parent,
@@ -250,7 +257,18 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
         }
         
         let delta = time - last
-        arena.update(deltaTime: delta)
+        
+        
+        var phonePlane: PlaneConstruction? = nil
+        if let parentForwardDirection = ARSceneView.pointOfView?.parentFront,
+            let parentPosition = ARSceneView.pointOfView?.position {
+            let newVec = arena.convertVector(parentForwardDirection, from: ARSceneView.pointOfView?.parent)
+            let newPos = arena.convertPosition(parentPosition, from: ARSceneView.pointOfView?.parent)
+            
+            phonePlane = PlaneConstruction(position: newPos, normal: newVec, width: 0, height: 0)
+        }
+        
+        arena.update(deltaTime: delta, phonePlane: phonePlane)
         
         lastUpdateDate = time
     }

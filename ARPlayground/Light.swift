@@ -51,6 +51,7 @@ class LightFragmentKeyFrame: Equatable {
         return lhs.id == rhs.id
     }
     
+    /* When creating a KeyFrameKey use the farther ahead keyFrame first */
     func keyFrameKey(with keyFrame: LightFragmentKeyFrame) -> KeyFrameKey {
         return KeyFrameKey(value: self.id + keyFrame.id)
     }
@@ -64,9 +65,10 @@ public struct LightFragmentContainer {
 
 class Light: SCNNode {
 
+    // First KeyFrame is the end of the line. Last keyframe is the head, with the direction vector
     var keyFrames = [LightFragmentKeyFrame]()
     
-    // The fragment related to the
+    // The fragment related to a pair of KeyFrames
     var fragments = [KeyFrameKey : LightFragmentContainer]()
     
     private let speed: SCNFloat = 0.05
@@ -106,20 +108,81 @@ class Light: SCNNode {
         return nil
     }
     
+    let maxDistance: SCNFloat = 1
+    let minDistanceDeleteThreshold: SCNFloat = 0.001
+    
     // Perform movement. Update the virtual positions of the light
-    public func updateKeyFrames(distance: Float) {
-        for i in 0..<keyFrames.count {
+    public func updateKeyFrames(movement: Float) {
+        
+        var incrementalDistance: SCNFloat = 0
+        
+        for i in (0..<keyFrames.count).reversed() {
             let keyFrame = keyFrames[i]
 
-            guard let direction = keyFrame.direction else {
-                continue
+            if let direction = keyFrame.direction {
+                keyFrames[i].setPosition(position: keyFrame.position + (direction.normalized * movement))
             }
             
-            keyFrames[i].setPosition(position: keyFrame.position + (direction.normalized * distance))
+            // If there is a keyframe after this, check distance to that
+            if keyFrames.count > i + 1 {
+                let nextKeyFrame = keyFrames[i+1]
+                let thisDistance = (keyFrame.position - nextKeyFrame.position).magnitude
+                
+                if incrementalDistance + thisDistance > maxDistance {
+                    
+                    NSLog("This fragment hits our max total. Reduce!")
+                    NSLog("Inc Distance " + String(incrementalDistance))
+                    NSLog("This Distance " + String(thisDistance))
+
+                    // Move this end point up to be our total distance, and set its direction vector
+                    let remainingDistance = maxDistance - incrementalDistance
+                    
+                    // E.g. if we should only be going 1 more, but we have a length of 2, we need 1/2 of our current length
+                    let percentageRequired = remainingDistance / thisDistance
+                    
+                    let direction = nextKeyFrame.position - keyFrame.position
+                    
+                    // Update the position to be JUST under the maxLength. This way the next iteration should not trigger this set of commands again
+                    keyFrames[i].direction = direction.normalized
+                    keyFrames[i].setPosition(position: keyFrame.position + (direction * (1 - percentageRequired)) + (direction.normalized * movement)) // + (direction * (1 - percentageRequired))
+                    
+                    // This fragment already covers the max distance. Remove any leftover keyframes after this one
+                    removeFragments(lastKeyFramePosition: i)
+                    break
+                }
+                
+                incrementalDistance += thisDistance
+            }
         }
     }
     
     private let err: SCNFloat = 0.0001 // Avoid colliding again with this error offset
+    
+    private func removeFragments(lastKeyFramePosition position: Int) {
+        guard position < keyFrames.count else {
+            return
+        }
+        
+        if position > 0 {
+            NSLog("We are actually removing elements. " + String(position))
+        }
+        
+        for i in 0..<position {
+            let toRemoveFrame = keyFrames[i]
+            guard i+1 < keyFrames.count else {
+                    continue
+            }
+            
+            let nextKeyFrame = keyFrames[i + 1]
+            let keyFrameKey = nextKeyFrame.keyFrameKey(with: toRemoveFrame)
+            let fragmentContainer: LightFragmentContainer? = fragments[keyFrameKey]
+
+            fragmentContainer?.fragment.removeFromParentNode()
+            fragments[keyFrameKey] = nil
+        }
+        
+        keyFrames.removeFirst(position)
+    }
     
     public func createNewFragment(cutPosition: SCNVector3, direction: SCNVector3) {
      
@@ -177,52 +240,5 @@ class Light: SCNNode {
 
             preiviousOptional = keyFrame
         }
-        
-//        var indicies = [Int]()
-//
-//        for i in 0..<fragments.count {
-//            indicies.append(i)
-//        }
-//
-//
-//        let verticies = fragments.compactMap { (fragment: LightFragment) -> SCNVector3 in
-//            return fragment.position
-//        }
-//        let vertexSource = SCNGeometrySource(vertices: verticies)
-//
-////        let data = NSData(bytes: indicies, length: MemoryLayout.size(ofValue: indicies))
-//
-////        let element = SCNGeometryElement(data: data as Data, primitiveType: SCNGeometryPrimitiveType.line, primitiveCount: 1, bytesPerIndex: MemoryLayout.size(ofValue: Int.self))
-//        let element = SCNGeometryElement(indices: indicies, primitiveType: .line)
-//
-//
-//        let line = SCNGeometry(sources: [vertexSource], elements: [element])
-//
-//        line.firstMaterial?.diffuse.contents = UIColor.red
-//
-//
-////                    let boxGeometry = SCNBox(width: 1.0, height: 1.0, length: 1.0, chamferRadius: 0.1)
-////
-////self.geometry = boxGeometry
-//
-//
-//        self.geometry = line
-//        glLineWidth(20)
-        
-        
-//        let path = UIBezierPath()
-//        if let start = fragments.first {
-//            path.move(to: <#T##CGPoint#>)
-//        }
-//
-//
-//
-//        SCNShape.init(path: path, extrusionDepth: 0.25)
-    
-        
-        
-        
-
-
     }
 }

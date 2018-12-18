@@ -107,18 +107,32 @@ class Arena: SCNNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func update(deltaTime: TimeInterval) {
-        let speed: Float = 0.1
+    let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
+    
+    public func update(deltaTime: TimeInterval, phonePlane: PlaneConstruction?) {
+        let speed: Float = 0.75
         
-        lightNode.updateKeyFrames(distance: speed * Float(deltaTime))
+        lightNode.updateKeyFrames(movement: speed * Float(deltaTime))
         
         if let fragment = lightNode.getLeadingFragment() {
             for plane in planes {
-                if let collisionInfo = collision(plane: plane, a: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position) {
+                let planeConstruction = PlaneConstruction(position: plane.position, normal: plane.parentFront, width: 0 , height: 0)
+                if let collisionInfo = collision(plane: planeConstruction, a: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position) {
                     NSLog("Collision")
                     
                     lightNode.createNewFragment(cutPosition: collisionInfo.point, direction: collisionInfo.reflectedDirection)
                     break
+                }
+            }
+            
+            if let plane = phonePlane,
+                let collisionInfo = collision(plane: plane, a: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position) {
+                NSLog("Phone Collision")
+                
+                lightNode.createNewFragment(cutPosition: collisionInfo.point, direction: collisionInfo.reflectedDirection)
+                
+                DispatchQueue.main.async { [weak self] in
+                    self?.feedbackGenerator.impactOccurred()
                 }
             }
         }
@@ -127,9 +141,9 @@ class Arena: SCNNode {
     }
 
     
-    private func collision(plane: SCNNode, a: SCNVector3, b: SCNVector3) -> CollisionData? {
+    private func collision(plane: PlaneConstruction, a: SCNVector3, b: SCNVector3) -> CollisionData? {
         let planePoint = plane.position
-        let planeNormal = plane.parentFront
+        let planeNormal = plane.normal
         
         let planeNormalDotLineDirection = planeNormal.dotProduct(b - a)
         if planeNormalDotLineDirection == 0 {
@@ -141,30 +155,11 @@ class Arena: SCNNode {
         if t >= 0 && t <= 1 {
             let collisionPoint = a + ((b - a) * t)
             
-//            let originalDirection = b - a
-//
-//            let dotProd = planeNormal.dotProduct(originalDirection)
-//            let directionVectorOntoNormal = planeNormal.normalized * dotProd
-//
-//            let pointOnNormal = collisionPoint + directionVectorOntoNormal
-//
-//            let originDownToPlane = pointOnNormal - a
-//
-//            let finalPoint = a + (originDownToPlane * 2)
-//
-//            let finalDirection = finalPoint - collisionPoint
-            
-
             let I = a - b // Inverse direction of incoming ray
         
             let NDotI = planeNormal.dotProduct(I)
             let reflectedRay = (planeNormal * 2 * NDotI) - I
 
-//            let reflectedRay = b-a
-
-            
-            NSLog(String(t))
-            
             return CollisionData(point: collisionPoint, reflectedDirection: reflectedRay.normalized)
         }
     
