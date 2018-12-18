@@ -65,6 +65,8 @@ public struct LightFragmentContainer {
 
 class Light: SCNNode {
 
+    public static let standardErrorOffset: SCNFloat = 0.001
+    
     // First KeyFrame is the end of the line. Last keyframe is the head, with the direction vector
     var keyFrames = [LightFragmentKeyFrame]()
     
@@ -108,7 +110,7 @@ class Light: SCNNode {
         return nil
     }
     
-    let maxDistance: SCNFloat = 1
+    let maxDistance: SCNFloat = 0.1
     let minDistanceDeleteThreshold: SCNFloat = 0.001
     
     // Perform movement. Update the virtual positions of the light
@@ -156,8 +158,6 @@ class Light: SCNNode {
         }
     }
     
-    private let err: SCNFloat = 0.0001 // Avoid colliding again with this error offset
-    
     private func removeFragments(lastKeyFramePosition position: Int) {
         guard position < keyFrames.count else {
             return
@@ -189,11 +189,11 @@ class Light: SCNNode {
         // Our last keyframe should stop moving at this position
         if keyFrames.count > 0,
             let lastDirection = keyFrames[keyFrames.count - 1].direction {
-            keyFrames[keyFrames.count - 1].position = cutPosition + (lastDirection * -err)
+            keyFrames[keyFrames.count - 1].position = cutPosition + (lastDirection * -Light.standardErrorOffset)
             keyFrames[keyFrames.count - 1].direction = nil
         }
         
-        keyFrames.append(LightFragmentKeyFrame(position: cutPosition + (direction * err), direction: direction))
+        keyFrames.append(LightFragmentKeyFrame(position: cutPosition, direction: direction))
         
         NSLog("Start")
         for keyFrame in keyFrames {

@@ -16,11 +16,25 @@ struct Platform {
     }
 }
 
-struct PlaneConstruction {
-    let position: SCNVector3
-    let normal: SCNVector3
+class PlaneConstruction {
+    var position: SCNVector3
+    var normal: SCNVector3
+    
     let width: SCNFloat
     let height: SCNFloat
+    
+    init(position: SCNVector3, normal: SCNVector3, width: SCNFloat, height: SCNFloat) {
+        self.position = position
+        self.normal = normal
+        
+        self.width = width
+        self.height = height
+    }
+    
+    public func update(position: SCNVector3, normal: SCNVector3) {
+        self.position = position
+        self.normal = normal
+    }
 }
 
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SCNSceneRendererDelegate {
@@ -32,7 +46,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
     
     var beams: [LightFragment]?
     
-    let arena = Arena(withOrigin: SCNVector3.init())
+    let arena: Arena
     
     let configuration = ARWorldTrackingConfiguration()
     
@@ -42,7 +56,18 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
 
     let scene = SCNScene()
     
+    let player: Player
+    
     let phoneDirectionNode = LightFragment(startPoint: SCNVector3(0, 0, 0.1), endPoint: SCNVector3(0.2, 0.1, 0), radius: 0.005, color: .yellow)
+    
+    required init?(coder aDecoder: NSCoder) {
+
+        player = Player(width: 0, height: 0)
+        
+        arena = Arena(withOrigin: SCNVector3.init(), player: player)
+        
+        super.init(coder: aDecoder)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -188,6 +213,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
             
             phoneDirectionNode.update(startPoint: newPos + (newVec.normalized * 0.1), endPoint: newPos + newVec.normalized * 0.2)
             
+            
+            
 //            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
         }
         
@@ -265,10 +292,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
             let newVec = arena.convertVector(parentForwardDirection, from: ARSceneView.pointOfView?.parent)
             let newPos = arena.convertPosition(parentPosition, from: ARSceneView.pointOfView?.parent)
             
-            phonePlane = PlaneConstruction(position: newPos, normal: newVec, width: 0, height: 0)
+            player.update(position: newPos, direction: newVec)
         }
         
-        arena.update(deltaTime: delta, phonePlane: phonePlane)
+        arena.update(deltaTime: delta)
         
         lastUpdateDate = time
     }
@@ -308,8 +335,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
         
         // 0----
         
-        let newArena = Arena(withOrigin: SCNVector3(planeAnchor.center.x, planeAnchor.center.y, planeAnchor.center.z))
-        node.addChildNode(newArena)
+//        let newArena = Arena(withOrigin: SCNVector3(planeAnchor.center.x, planeAnchor.center.y, planeAnchor.center.z))
+//        node.addChildNode(newArena)
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {

@@ -9,9 +9,28 @@
 import UIKit
 import ARKit
 
+class Player {
+    var phone: PlaneConstruction
+    
+    init(width: SCNFloat, height: SCNFloat) {
+        phone = PlaneConstruction(position: SCNVector3Zero, normal: SCNVector3Zero, width: 0, height: 0)
+    }
+    
+    public func update(position: SCNVector3, direction: SCNVector3) {
+        phone.update(position: position, normal: direction)
+    }
+}
+
 struct CollisionData {
     let point: SCNVector3
     let reflectedDirection: SCNVector3
+    let planeConstrutcion: PlaneConstruction
+    
+    init(point: SCNVector3, reflectedDirection: SCNVector3, plane: PlaneConstruction) {
+        self.point = point
+        self.reflectedDirection = reflectedDirection.normalized
+        self.planeConstrutcion = plane
+    }
 }
 
 class Arena: SCNNode {
@@ -23,8 +42,11 @@ class Arena: SCNNode {
     
     let lightNode: Light
     
-    init(withOrigin origin: SCNVector3) {
+    let player: Player
+    
+    init(withOrigin origin: SCNVector3, player: Player) {
         
+        self.player = player
         lightNode = Light(initialPosition: SCNVector3(0, 0.3 / 2.0, 0), direction: SCNVector3(0.5, 1, 0.5))
         
         super.init()
@@ -109,38 +131,97 @@ class Arena: SCNNode {
     
     let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
     
-    public func update(deltaTime: TimeInterval, phonePlane: PlaneConstruction?) {
-        let speed: Float = 0.75
+    public func update(deltaTime: TimeInterval) {
+        let ceil: Float = 0.05
+        let speed: Float = 1.00
         
-        lightNode.updateKeyFrames(movement: speed * Float(deltaTime))
+        // Don't let movement get too crazy
+        let movement = min(ceil, speed * Float(deltaTime))
+        
+        lightNode.updateKeyFrames(movement: movement)
         
         if let fragment = lightNode.getLeadingFragment() {
-            for plane in planes {
-                let planeConstruction = PlaneConstruction(position: plane.position, normal: plane.parentFront, width: 0 , height: 0)
-                if let collisionInfo = collision(plane: planeConstruction, a: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position) {
-                    NSLog("Collision")
-                    
-                    lightNode.createNewFragment(cutPosition: collisionInfo.point, direction: collisionInfo.reflectedDirection)
-                    break
+            
+            var collisionInfo: CollisionData? = checkAllCollisions(withSegmentFrom: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position)
+            var continuedCollisionInfo: CollisionData? = collisionInfo
+            
+            // Don't get caught in infinite loop
+            var repeats: Int = 0
+            let repeatMax = 5
+            
+            while continuedCollisionInfo != nil && repeats < repeatMax {
+                // We have a collision. Check if the collision's new start point is 'skipping over' any planes it should have collided with
+                
+                collisionInfo = continuedCollisionInfo
+                
+                if let info = collisionInfo {
+                    continuedCollisionInfo = checkAllCollisions(withSegmentFrom: info.point - (info.reflectedDirection * Light.standardErrorOffset),
+                                                                b: info.point + (info.reflectedDirection * Light.standardErrorOffset),
+                                                                ignoringPlane: info.planeConstrutcion)
                 }
+                
+                repeats += 1
             }
             
-            if let plane = phonePlane,
-                let collisionInfo = collision(plane: plane, a: fragment.startKeyFrame.position, b: fragment.endKeyFrame.position) {
-                NSLog("Phone Collision")
-                
-                lightNode.createNewFragment(cutPosition: collisionInfo.point, direction: collisionInfo.reflectedDirection)
-                
-                DispatchQueue.main.async { [weak self] in
-                    self?.feedbackGenerator.impactOccurred()
-                }
+            if repeats == repeatMax {
+                NSLog("Hit the max collision bounce count")
+                exit(0)
+            }
+            
+            if let info = collisionInfo {
+                lightNode.createNewFragment(cutPosition: info.point + (info.reflectedDirection * Light.standardErrorOffset), direction: info.reflectedDirection)
             }
         }
         
         lightNode.updateFragments()
     }
-
     
+    private func checkAllCollisions(withSegmentFrom a: SCNVector3, b: SCNVector3, ignoringPlane: PlaneConstruction? = nil) -> CollisionData? {
+        var savedCollisionInfo: CollisionData? = nil
+
+        let addToInfo = { (info: CollisionData) in
+            
+            if let oldInfo = savedCollisionInfo {
+                NSLog("lol")
+//                let newDirection = oldInfo.planeConstrutcion.normal + info.planeConstrutcion.normal
+//                savedCollisionInfo = CollisionData(point: oldInfo.point,
+//                                                   reflectedDirection: newDirection,
+//                                                   plane: PlaneConstruction(position: SCNVector3Zero, normal: newDirection, width: 0, height: 0))
+            } else {
+//                savedCollisionInfo = info
+            }
+            
+            savedCollisionInfo = info
+
+        }
+        
+        for plane in planes {
+            if plane.parentFront == ignoringPlane?.normal {
+                continue
+            }
+            
+            let planeConstruction = PlaneConstruction(position: plane.position, normal: plane.parentFront, width: 0 , height: 0)
+            if let collisionInfo = collision(plane: planeConstruction, a: a, b: b) {
+                addToInfo(collisionInfo)
+                
+                NSLog("Collision")
+            }
+        }
+        
+        if !(player.phone.normal == ignoringPlane?.normal),
+            let collisionInfo = collision(plane: player.phone, a: a, b: b) {
+            addToInfo(collisionInfo)
+            
+            NSLog("Phone Collision")
+
+            DispatchQueue.main.async { [weak self] in
+                self?.feedbackGenerator.impactOccurred()
+            }
+        }
+        
+        return savedCollisionInfo
+    }
+
     private func collision(plane: PlaneConstruction, a: SCNVector3, b: SCNVector3) -> CollisionData? {
         let planePoint = plane.position
         let planeNormal = plane.normal
@@ -160,7 +241,7 @@ class Arena: SCNNode {
             let NDotI = planeNormal.dotProduct(I)
             let reflectedRay = (planeNormal * 2 * NDotI) - I
 
-            return CollisionData(point: collisionPoint, reflectedDirection: reflectedRay.normalized)
+            return CollisionData(point: collisionPoint, reflectedDirection: reflectedRay.normalized, plane: plane)
         }
     
         
