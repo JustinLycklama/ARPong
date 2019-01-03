@@ -10,14 +10,15 @@ import UIKit
 import ARKit
 
 class Player {
-    var phone: PlaneConstruction
+    var phone: LSPlane
     
     init(width: SCNFloat, height: SCNFloat) {
-        phone = PlaneConstruction(position: SCNVector3Zero, normal: SCNVector3Zero, width: 0.1, height: 0.1)
+        phone = LSPlane(width: 0.1, height: 0.1)
     }
     
-    public func update(position: SCNVector3, direction: SCNVector3) {
-        phone.update(position: position, normal: direction)
+    public func update(position: SCNVector3, transformation: SCNMatrix4) {
+        phone.position = position
+        phone.transform = transformation
     }
 }
 
@@ -25,14 +26,14 @@ struct CollisionData {
     let point: SCNVector3
     let originalDirection: SCNVector3
     let reflectedDirection: SCNVector3
-    let planeConstrutcion: PlaneConstruction
+    let plane: LSPlane
     let tVaule: SCNFloat
     
-    init(point: SCNVector3, originalDirection: SCNVector3, reflectedDirection: SCNVector3, plane: PlaneConstruction, tval: SCNFloat) {
+    init(point: SCNVector3, originalDirection: SCNVector3, reflectedDirection: SCNVector3, plane: LSPlane, tval: SCNFloat) {
         self.point = point
         self.originalDirection = originalDirection
         self.reflectedDirection = reflectedDirection.normalized
-        self.planeConstrutcion = plane
+        self.plane = plane
         self.tVaule = tval
     }
 }
@@ -42,7 +43,7 @@ class Arena: SCNNode {
 //    private var anchor: ARPlaneAnchor
     
 //    private let position: SCNVector3
-    private var planes: [SCNNode] = []
+    private var planes: [LSPlane] = []
     
     let lightNode: Light
     
@@ -58,23 +59,10 @@ class Arena: SCNNode {
         // X, Y, Z
         let dimensions: SCNVector3 = SCNVector3(1, 0.3, 0.3)
         
-        let createPlane = { (width: Float, height: Float) -> SCNNode in
-            
-            let planeGeometry = SCNPlane(width: CGFloat(width), height: CGFloat(height))
-            
-            let planeNode = SCNNode(geometry: planeGeometry)
-
-            let material = SCNMaterial()
-            material.diffuse.contents = UIImage(named: "tron_grid")
-            material.isDoubleSided = true
-            
-            planeGeometry.materials = [material]
-            
-            return planeNode
-        }
+ 
         
         // Floor
-        let floor = createPlane(dimensions.x, dimensions.z)
+        let floor = LSPlane(width: CGFloat(dimensions.x), height: CGFloat(dimensions.z))
         floor.transform = SCNMatrix4MakeRotation(Float(-Double.pi / 2.0), 1.0, 0.0, 0.0)
         floor.position = SCNVector3(origin.x, origin.y, origin.z)
 
@@ -83,7 +71,7 @@ class Arena: SCNNode {
         addChildNode(floor)
         
         // Roof
-        let roof = createPlane(dimensions.x, dimensions.z)
+        let roof = LSPlane(width: CGFloat(dimensions.x), height: CGFloat(dimensions.z))
         roof.transform = SCNMatrix4MakeRotation(Float(-Double.pi / 2.0), 1.0, 0.0, 0.0)
         roof.position = SCNVector3(origin.x, origin.y + dimensions.y, origin.z)
         
@@ -91,7 +79,7 @@ class Arena: SCNNode {
         addChildNode(roof)
         
         // Left Wall
-        let leftWall = createPlane(dimensions.z, dimensions.y)
+        let leftWall = LSPlane(width: CGFloat(dimensions.z), height: CGFloat(dimensions.y))
         leftWall.transform = SCNMatrix4MakeRotation(Float(-Double.pi / 2.0), 0.0, 1.0, 0.0)
         leftWall.position = SCNVector3(origin.x - (dimensions.x / 2.0), origin.y + (dimensions.y / 2.0), origin.z)
 
@@ -104,7 +92,7 @@ class Arena: SCNNode {
 
         
         // Right Wall
-        let rightWall = createPlane(dimensions.z, dimensions.y)
+        let rightWall = LSPlane(width: CGFloat(dimensions.z), height: CGFloat(dimensions.y))
         rightWall.transform = SCNMatrix4MakeRotation(Float(-Double.pi / 2.0), 0.0, 1.0, 0.0)
         rightWall.position = SCNVector3(origin.x + (dimensions.x / 2.0), origin.y + (dimensions.y / 2.0), origin.z)
         
@@ -112,14 +100,14 @@ class Arena: SCNNode {
         addChildNode(rightWall)
         
         // Far Wall
-        let farWall = createPlane(dimensions.x, dimensions.y)
+        let farWall = LSPlane(width: CGFloat(dimensions.x), height: CGFloat(dimensions.y))
         farWall.position = SCNVector3(origin.x, origin.y + (dimensions.y / 2.0), origin.z - (dimensions.z / 2.0))
         
         planes.append(farWall)
         addChildNode(farWall)
         
         // Close Wall
-        let closeWall = createPlane(dimensions.x, dimensions.y)
+        let closeWall = LSPlane(width: CGFloat(dimensions.x), height: CGFloat(dimensions.y))
         closeWall.position = SCNVector3(origin.x, origin.y + (dimensions.y / 2.0), origin.z + (dimensions.z / 2.0))
         
         planes.append(closeWall)
@@ -161,7 +149,7 @@ class Arena: SCNNode {
                 if let info = collisionInfo {
                     continuedCollisionInfo = checkAllCollisions(withSegmentFrom: info.point - (info.originalDirection * (Light.standardErrorOffset * 3)),
                                                                 to: info.point + (info.reflectedDirection * (Light.standardErrorOffset * 3)),
-                                                                ignoringPlane: info.planeConstrutcion)
+                                                                ignoringPlane: info.plane)
                 }
                 
                 repeats += 1
@@ -182,53 +170,31 @@ class Arena: SCNNode {
         lightNode.updateFragments()
     }
     
-    private func checkAllCollisions(withSegmentFrom a: SCNVector3, to b: SCNVector3, ignoringPlane: PlaneConstruction? = nil) -> CollisionData? {
-        var savedCollisionInfo: CollisionData? = nil
-
+    private func checkAllCollisions(withSegmentFrom a: SCNVector3, to b: SCNVector3, ignoringPlane: LSPlane? = nil) -> CollisionData? {
         var collisionDataList = [CollisionData]()
         
-        let addToInfo = { (info: CollisionData) in
-            
-            collisionDataList.append(info)
-            
-//            if let oldInfo = savedCollisionInfo {
-//                NSLog("lol")
-////                let newDirection = oldInfo.planeConstrutcion.normal + info.planeConstrutcion.normal
-////                savedCollisionInfo = CollisionData(point: oldInfo.point,
-////                                                   reflectedDirection: newDirection,
-////                                                   plane: PlaneConstruction(position: SCNVector3Zero, normal: newDirection, width: 0, height: 0))
-//            } else {
-////                savedCollisionInfo = info
-//            }
-//
-//            savedCollisionInfo = info
-
-        }
-        
         for plane in planes {
-//            if plane.parentFront == ignoringPlane?.normal {
-//                continue
-//            }
+            if plane == ignoringPlane {
+                continue
+            }
             
-            let planeConstruction = PlaneConstruction(position: plane.position, normal: plane.parentFront, width: 0.3 , height: 0.3)
-            if let collisionInfo = collision(plane: planeConstruction, a: a, b: b) {
-                addToInfo(collisionInfo)
-                
+            if let collisionInfo = collision(plane: plane, a: a, b: b) {
+                collisionDataList.append((collisionInfo))
+
                 NSLog("Collision")
             }
         }
         
-        if !(player.phone.normal == ignoringPlane?.normal),
+        if !(player.phone == ignoringPlane),
             let collisionInfo = collision(plane: player.phone, a: a, b: b) {
-            addToInfo(collisionInfo)
-            
+            collisionDataList.append((collisionInfo))
+
             NSLog("Phone Collision")
 
             DispatchQueue.main.async { [weak self] in
                 self?.feedbackGenerator.impactOccurred()
             }
         }
-        
         
         // Return the closest collision
         var finalData: CollisionData? = nil
@@ -244,9 +210,9 @@ class Arena: SCNNode {
         return finalData
     }
 
-    private func collision(plane: PlaneConstruction, a: SCNVector3, b: SCNVector3) -> CollisionData? {
+    private func collision(plane: LSPlane, a: SCNVector3, b: SCNVector3) -> CollisionData? {
         let planePoint = plane.position
-        let planeNormal = plane.normal
+        let planeNormal = plane.parentFront
         
         let planeNormalDotLineDirection = planeNormal.dotProduct(b - a)
         if planeNormalDotLineDirection == 0 {
@@ -261,8 +227,8 @@ class Arena: SCNNode {
             // Now that we have our collision point, lets see if it falls within the plane construction
             let vectorToCollision = collisionPoint - plane.position
             
-            if abs(vectorToCollision.dotProduct(plane.height.normalized)) > plane.height.magnitude ||
-                abs(vectorToCollision.dotProduct(plane.width.normalized)) > plane.width.magnitude {
+            if abs(vectorToCollision.dotProduct(plane.heightVector.normalized)) > plane.heightVector.magnitude ||
+                abs(vectorToCollision.dotProduct(plane.widthVector.normalized)) > plane.widthVector.magnitude {
                 return nil
             }
             

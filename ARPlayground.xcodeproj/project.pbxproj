@@ -13,7 +13,7 @@
 		7D285F8E219235DF000EA5F9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F8C219235DF000EA5F9 /* Main.storyboard */; };
 		7D285F90219235E1000EA5F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F8F219235E1000EA5F9 /* Assets.xcassets */; };
 		7D285F93219235E1000EA5F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F91219235E1000EA5F9 /* LaunchScreen.storyboard */; };
-		7D285F9B21927E1E000EA5F9 /* Plane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F9A21927E1D000EA5F9 /* Plane.swift */; };
+		7D285F9B21927E1E000EA5F9 /* LSPlane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F9A21927E1D000EA5F9 /* LSPlane.swift */; };
 		7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F9C21928782000EA5F9 /* LightFragment.swift */; };
 		7D36F01021BC6BA8002A2371 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F00F21BC6BA8002A2371 /* Light.swift */; };
 		7D36F01221BC7085002A2371 /* SCNVector3+MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */; };
@@ -30,7 +30,7 @@
 		7D285F8F219235E1000EA5F9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7D285F92219235E1000EA5F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7D285F94219235E1000EA5F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7D285F9A21927E1D000EA5F9 /* Plane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plane.swift; sourceTree = "<group>"; };
+		7D285F9A21927E1D000EA5F9 /* LSPlane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSPlane.swift; sourceTree = "<group>"; };
 		7D285F9C21928782000EA5F9 /* LightFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightFragment.swift; sourceTree = "<group>"; };
 		7D36F00F21BC6BA8002A2371 /* Light.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
 		7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+MathUtils.swift"; sourceTree = "<group>"; };
@@ -71,7 +71,7 @@
 				7D285F86219235DF000EA5F9 /* AppDelegate.swift */,
 				7D285F88219235DF000EA5F9 /* art.scnassets */,
 				7D285F8A219235DF000EA5F9 /* ViewController.swift */,
-				7D285F9A21927E1D000EA5F9 /* Plane.swift */,
+				7D285F9A21927E1D000EA5F9 /* LSPlane.swift */,
 				7D285F8C219235DF000EA5F9 /* Main.storyboard */,
 				7D285F8F219235E1000EA5F9 /* Assets.xcassets */,
 				7D285F91219235E1000EA5F9 /* LaunchScreen.storyboard */,
@@ -161,7 +161,7 @@
 				7D36F01021BC6BA8002A2371 /* Light.swift in Sources */,
 				7D285F8B219235DF000EA5F9 /* ViewController.swift in Sources */,
 				7D4C39D621C0C9DE008BECA6 /* Extensions.swift in Sources */,
-				7D285F9B21927E1E000EA5F9 /* Plane.swift in Sources */,
+				7D285F9B21927E1E000EA5F9 /* LSPlane.swift in Sources */,
 				7DA0C4F621ACF1EF007FA107 /* Arena.swift in Sources */,
 				7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */,
 				7D285F87219235DF000EA5F9 /* AppDelegate.swift in Sources */,

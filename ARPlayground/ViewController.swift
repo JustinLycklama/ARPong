@@ -16,33 +16,12 @@ struct Platform {
     }
 }
 
-class PlaneConstruction {
-    var position: SCNVector3
-    var normal: SCNVector3
-    
-    let width: SCNVector3
-    let height: SCNVector3
-    
-    init(position: SCNVector3, normal: SCNVector3, width: SCNFloat, height: SCNFloat) {
-        self.position = position
-        self.normal = normal
-        
-        self.width = SCNVector3(width, 0, 0)
-        self.height = SCNVector3(0, 0, height)
-    }
-    
-    public func update(position: SCNVector3, normal: SCNVector3) {
-        self.position = position
-        self.normal = normal
-    }
-}
-
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SCNSceneRendererDelegate {
 
     @IBOutlet var ARSceneView: ARSCNView!
     var simSceneView: SCNView?
     
-    var planesMap = [UUID : Plane]()
+    var planesMap = [UUID : LSPlane]()
     
     var beams: [LightFragment]?
     
@@ -272,7 +251,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
     }
     
     
-    var highlightedPlane: Plane? = nil
+    var highlightedPlane: LSPlane? = nil
     
     var lastUpdateDate: TimeInterval?
     
@@ -286,13 +265,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SC
         let delta = time - last
         
         
-        var phonePlane: PlaneConstruction? = nil
-        if let parentForwardDirection = ARSceneView.pointOfView?.parentFront,
+        if let pointOfViewTransformation = ARSceneView.pointOfView?.transform,
             let parentPosition = ARSceneView.pointOfView?.position {
-            let newVec = arena.convertVector(parentForwardDirection, from: ARSceneView.pointOfView?.parent)
+            let newTransform = arena.convertTransform(pointOfViewTransformation, from: ARSceneView.pointOfView?.parent)
             let newPos = arena.convertPosition(parentPosition, from: ARSceneView.pointOfView?.parent)
             
-            player.update(position: newPos, direction: newVec)
+            player.update(position: newPos, transformation: newTransform)
         }
         
         arena.update(deltaTime: delta)
