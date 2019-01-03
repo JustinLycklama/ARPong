@@ -20,15 +20,15 @@ class PlaneConstruction {
     var position: SCNVector3
     var normal: SCNVector3
     
-    let width: SCNFloat
-    let height: SCNFloat
+    let width: SCNVector3
+    let height: SCNVector3
     
     init(position: SCNVector3, normal: SCNVector3, width: SCNFloat, height: SCNFloat) {
         self.position = position
         self.normal = normal
         
-        self.width = width
-        self.height = height
+        self.width = SCNVector3(width, 0, 0)
+        self.height = SCNVector3(0, 0, height)
     }
     
     public func update(position: SCNVector3, normal: SCNVector3) {

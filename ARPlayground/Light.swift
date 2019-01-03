@@ -184,16 +184,15 @@ class Light: SCNNode {
         keyFrames.removeFirst(position)
     }
     
-    public func createNewFragment(cutPosition: SCNVector3, direction: SCNVector3) {
+    public func createNewFragment(cutPosition: SCNVector3, newFragPosition: SCNVector3, direction: SCNVector3) {
      
         // Our last keyframe should stop moving at this position
-        if keyFrames.count > 0,
-            let lastDirection = keyFrames[keyFrames.count - 1].direction {
-            keyFrames[keyFrames.count - 1].position = cutPosition + (lastDirection * -Light.standardErrorOffset)
+        if keyFrames.count > 0 {
+            keyFrames[keyFrames.count - 1].position = cutPosition
             keyFrames[keyFrames.count - 1].direction = nil
         }
         
-        keyFrames.append(LightFragmentKeyFrame(position: cutPosition, direction: direction))
+        keyFrames.append(LightFragmentKeyFrame(position: newFragPosition, direction: direction))
         
         NSLog("Start")
         for keyFrame in keyFrames {
