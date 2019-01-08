@@ -42,24 +42,25 @@ class Arena: SCNNode {
 
 //    private var anchor: ARPlaneAnchor
     
-//    private let position: SCNVector3
     private var planes: [LSPlane] = []
     
     let lightNode: Light
     
     let player: Player
     
-    init(withOrigin origin: SCNVector3, player: Player) {
-        
+    init(anchor: ARPlaneAnchor, player: Player) {
+
         self.player = player
         lightNode = Light(initialPosition: SCNVector3(0, 0.3 / 2.0, 0), direction: SCNVector3(0.5, 1, 0.5))
         
         super.init()
-        
+  
         // X, Y, Z
-        let dimensions: SCNVector3 = SCNVector3(1, 0.3, 0.3)
+        let dimensions: SCNVector3 = SCNVector3(10, 2, 2)
         
- 
+        self.position = player.phone.position
+        
+        let origin = SCNVector3.init()
         
         // Floor
         let floor = LSPlane(width: CGFloat(dimensions.x), height: CGFloat(dimensions.z))

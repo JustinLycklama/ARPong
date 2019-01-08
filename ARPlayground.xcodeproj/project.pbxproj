@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D1C0DC821DED35C0065F072 /* FocusSquare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1C0DC621DED35B0065F072 /* FocusSquare.swift */; };
+		7D1C0DC921DED35C0065F072 /* FocusSquareSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1C0DC721DED35C0065F072 /* FocusSquareSegment.swift */; };
+		7D1C0DCB21DED4150065F072 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1C0DCA21DED4150065F072 /* Utilities.swift */; };
 		7D285F87219235DF000EA5F9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F86219235DF000EA5F9 /* AppDelegate.swift */; };
 		7D285F89219235DF000EA5F9 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F88219235DF000EA5F9 /* art.scnassets */; };
-		7D285F8B219235DF000EA5F9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F8A219235DF000EA5F9 /* ViewController.swift */; };
+		7D285F8B219235DF000EA5F9 /* LSSceneViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F8A219235DF000EA5F9 /* LSSceneViewController.swift */; };
 		7D285F8E219235DF000EA5F9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F8C219235DF000EA5F9 /* Main.storyboard */; };
 		7D285F90219235E1000EA5F9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F8F219235E1000EA5F9 /* Assets.xcassets */; };
 		7D285F93219235E1000EA5F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D285F91219235E1000EA5F9 /* LaunchScreen.storyboard */; };
@@ -17,15 +20,20 @@
 		7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D285F9C21928782000EA5F9 /* LightFragment.swift */; };
 		7D36F01021BC6BA8002A2371 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F00F21BC6BA8002A2371 /* Light.swift */; };
 		7D36F01221BC7085002A2371 /* SCNVector3+MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */; };
-		7D4C39D621C0C9DE008BECA6 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C39D521C0C9DE008BECA6 /* Extensions.swift */; };
+		7D4C39D621C0C9DE008BECA6 /* SceneKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C39D521C0C9DE008BECA6 /* SceneKitExtensions.swift */; };
+		7D8E0BF421E40CAA007DA9D4 /* LSInterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D8E0BF221E40CAA007DA9D4 /* LSInterfaceController.swift */; };
+		7D8E0BF821E4162D007DA9D4 /* UIKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D8E0BF721E4162D007DA9D4 /* UIKitExtensions.swift */; };
 		7DA0C4F621ACF1EF007FA107 /* Arena.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA0C4F521ACF1EF007FA107 /* Arena.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7D1C0DC621DED35B0065F072 /* FocusSquare.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FocusSquare.swift; sourceTree = "<group>"; };
+		7D1C0DC721DED35C0065F072 /* FocusSquareSegment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FocusSquareSegment.swift; sourceTree = "<group>"; };
+		7D1C0DCA21DED4150065F072 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		7D285F83219235DF000EA5F9 /* ARPlayground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARPlayground.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D285F86219235DF000EA5F9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7D285F88219235DF000EA5F9 /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
-		7D285F8A219235DF000EA5F9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		7D285F8A219235DF000EA5F9 /* LSSceneViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSSceneViewController.swift; sourceTree = "<group>"; };
 		7D285F8D219235DF000EA5F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7D285F8F219235E1000EA5F9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7D285F92219235E1000EA5F9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -34,7 +42,9 @@
 		7D285F9C21928782000EA5F9 /* LightFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightFragment.swift; sourceTree = "<group>"; };
 		7D36F00F21BC6BA8002A2371 /* Light.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
 		7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+MathUtils.swift"; sourceTree = "<group>"; };
-		7D4C39D521C0C9DE008BECA6 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		7D4C39D521C0C9DE008BECA6 /* SceneKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneKitExtensions.swift; sourceTree = "<group>"; };
+		7D8E0BF221E40CAA007DA9D4 /* LSInterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSInterfaceController.swift; sourceTree = "<group>"; };
+		7D8E0BF721E4162D007DA9D4 /* UIKitExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitExtensions.swift; sourceTree = "<group>"; };
 		7DA0C4F521ACF1EF007FA107 /* Arena.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Arena.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -49,6 +59,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7D1C0DC521DED3450065F072 /* AppleFocusSquare */ = {
+			isa = PBXGroup;
+			children = (
+				7D1C0DC621DED35B0065F072 /* FocusSquare.swift */,
+				7D1C0DC721DED35C0065F072 /* FocusSquareSegment.swift */,
+				7D1C0DCA21DED4150065F072 /* Utilities.swift */,
+			);
+			path = AppleFocusSquare;
+			sourceTree = "<group>";
+		};
 		7D285F7A219235DF000EA5F9 = {
 			isa = PBXGroup;
 			children = (
@@ -68,21 +88,48 @@
 		7D285F85219235DF000EA5F9 /* ARPlayground */ = {
 			isa = PBXGroup;
 			children = (
-				7D285F86219235DF000EA5F9 /* AppDelegate.swift */,
-				7D285F88219235DF000EA5F9 /* art.scnassets */,
-				7D285F8A219235DF000EA5F9 /* ViewController.swift */,
-				7D285F9A21927E1D000EA5F9 /* LSPlane.swift */,
-				7D285F8C219235DF000EA5F9 /* Main.storyboard */,
 				7D285F8F219235E1000EA5F9 /* Assets.xcassets */,
+				7D285F88219235DF000EA5F9 /* art.scnassets */,
+				7D285F86219235DF000EA5F9 /* AppDelegate.swift */,
+				7D1C0DC521DED3450065F072 /* AppleFocusSquare */,
+				7D8E0BF121E40C1E007DA9D4 /* View Controllers */,
+				7D8E0BF921E41675007DA9D4 /* Objects */,
+				7D8E0BF621E41610007DA9D4 /* Extensions */,
+				7D285F8C219235DF000EA5F9 /* Main.storyboard */,
 				7D285F91219235E1000EA5F9 /* LaunchScreen.storyboard */,
 				7D285F94219235E1000EA5F9 /* Info.plist */,
+			);
+			path = ARPlayground;
+			sourceTree = "<group>";
+		};
+		7D8E0BF121E40C1E007DA9D4 /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				7D285F8A219235DF000EA5F9 /* LSSceneViewController.swift */,
+				7D8E0BF221E40CAA007DA9D4 /* LSInterfaceController.swift */,
+			);
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
+		7D8E0BF621E41610007DA9D4 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				7D8E0BF721E4162D007DA9D4 /* UIKitExtensions.swift */,
+				7D4C39D521C0C9DE008BECA6 /* SceneKitExtensions.swift */,
+				7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		7D8E0BF921E41675007DA9D4 /* Objects */ = {
+			isa = PBXGroup;
+			children = (
+				7D285F9A21927E1D000EA5F9 /* LSPlane.swift */,
 				7D36F00F21BC6BA8002A2371 /* Light.swift */,
 				7D285F9C21928782000EA5F9 /* LightFragment.swift */,
 				7DA0C4F521ACF1EF007FA107 /* Arena.swift */,
-				7D36F01121BC7085002A2371 /* SCNVector3+MathUtils.swift */,
-				7D4C39D521C0C9DE008BECA6 /* Extensions.swift */,
 			);
-			path = ARPlayground;
+			path = Objects;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -159,8 +206,13 @@
 			files = (
 				7D36F01221BC7085002A2371 /* SCNVector3+MathUtils.swift in Sources */,
 				7D36F01021BC6BA8002A2371 /* Light.swift in Sources */,
-				7D285F8B219235DF000EA5F9 /* ViewController.swift in Sources */,
-				7D4C39D621C0C9DE008BECA6 /* Extensions.swift in Sources */,
+				7D8E0BF421E40CAA007DA9D4 /* LSInterfaceController.swift in Sources */,
+				7D1C0DCB21DED4150065F072 /* Utilities.swift in Sources */,
+				7D285F8B219235DF000EA5F9 /* LSSceneViewController.swift in Sources */,
+				7D4C39D621C0C9DE008BECA6 /* SceneKitExtensions.swift in Sources */,
+				7D1C0DC821DED35C0065F072 /* FocusSquare.swift in Sources */,
+				7D1C0DC921DED35C0065F072 /* FocusSquareSegment.swift in Sources */,
+				7D8E0BF821E4162D007DA9D4 /* UIKitExtensions.swift in Sources */,
 				7D285F9B21927E1E000EA5F9 /* LSPlane.swift in Sources */,
 				7DA0C4F621ACF1EF007FA107 /* Arena.swift in Sources */,
 				7D285F9D21928782000EA5F9 /* LightFragment.swift in Sources */,
