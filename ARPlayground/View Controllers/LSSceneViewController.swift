@@ -10,7 +10,7 @@ import UIKit
 import SceneKit
 import ARKit
 
-fileprivate struct Platform {
+public struct Platform {
     static var isSimulator: Bool {
         return TARGET_OS_SIMULATOR != 0
     }
@@ -34,16 +34,22 @@ class LSSceneViewController: UIViewController {
 
     // MARK: Objects
     let player: Player
+    
+    var arenaPositionInScene: SCNVector3?
+    var arenaTransformInScene: SCNMatrix4?
+    
     var arena: Arena?
     
     let focusSquare: FocusSquare
 
     fileprivate var lastUpdateDate: TimeInterval?
     
+    var arenaAnchorNode: SCNNode?
+    var planesMap = [UUID : LSPlane]()
+    
     // MARK: Debug
     let DEBUG = false
     let phoneDirectionNode = LightFragment(startPoint: SCNVector3(0, 0, 0.1), endPoint: SCNVector3(0.2, 0.1, 0), radius: 0.005, color: .yellow)
-    //    var planesMap = [UUID : LSPlane]()
     
     // MARK: - View Lifecycle
     required init?(coder aDecoder: NSCoder) {
@@ -56,6 +62,7 @@ class LSSceneViewController: UIViewController {
         super.init(coder: aDecoder)
         
         interfaceController.delegate = self
+        interfaceController.enablePlaceArena(false)
         
     }
     
@@ -74,6 +81,8 @@ class LSSceneViewController: UIViewController {
             self.view = simSceneView
             
             let arena = Arena(player: player)
+            
+            arena.position = SCNVector3(-10, 0, 0)
             
             scene.rootNode.addChildNode(arena)
             
@@ -109,7 +118,7 @@ class LSSceneViewController: UIViewController {
             simSceneView.isPlaying = true
         } else {
             // Create a session configuration
-//            configuration.planeDetection = [.horizontal]
+            configuration.planeDetection = [.horizontal]
             
             // Run the view's session
             sceneView.session.delegate = self
@@ -137,10 +146,23 @@ class LSSceneViewController: UIViewController {
 // MARK: - LSSceneDelegate
 extension LSSceneViewController: LSSceneDelegate {
     func requestResetExperience() {
+        interfaceController.enablePlaceArena(false)
         
+        arena?.removeFromParentNode()
+        arena = nil
+        
+        arenaAnchorNode = nil
+
+        planesMap.values.forEach { (value: LSPlane) in
+            value.removeFromParentNode()
+        }
+
+        planesMap.removeAll()
     }
     
     func requestCreateArena() {
+        
+        requestResetExperience()
         
         let arena = Arena(player: player)
         
@@ -149,7 +171,28 @@ extension LSSceneViewController: LSSceneDelegate {
         }
         
         self.arena = arena
-        scene.rootNode.addChildNode(arena)
+        
+        arenaPositionInScene = player.phone.position
+        arenaTransformInScene = player.phone.transform
+        
+
+        if let arenaAnchorNode = arenaAnchorNode {
+            arenaAnchorNode.addChildNode(arena)
+            
+            
+            let positionInNode = arenaAnchorNode.convertPosition(arenaPositionInScene ?? SCNVector3.init(),
+                                                                 from: scene.rootNode)
+            let transformInNode = arenaAnchorNode.convertTransform(arenaTransformInScene ?? SCNMatrix4.init(),
+                                                                   from: scene.rootNode)
+            
+            arena.position = positionInNode
+            arena.transform = transformInNode
+        } else {
+            scene.rootNode.addChildNode(arena)
+            
+            arena.position = arenaPositionInScene ?? SCNVector3.init()
+            arena.transform = arenaTransformInScene ?? SCNMatrix4.init()
+        }
     }
 }
 
@@ -166,13 +209,22 @@ extension LSSceneViewController: ARSCNViewDelegate {
             return
         }
         
+        if arenaAnchorNode == nil {
+            arenaAnchorNode = node
+            interfaceController.enablePlaceArena(true)
+            
+            let newPlane = LSPlane(width: 1.0, height: 1.0)
+    
+            newPlane.transform = SCNMatrix4MakeRotation(Float(-Double.pi / 2.0), 1.0, 0.0, 0.0)
+
+            
+            node.addChildNode(newPlane)
+            planesMap[planeAnchor.identifier] = newPlane
+        }
         
         // ----
         
-        //        let newPlane = Plane(anchor: planeAnchor)
-        //
-        //        node.addChildNode(newPlane)
-        //        planesMap[planeAnchor.identifier] = newPlane
+
         //
         //        highlightedPlane?.deselect()
         //
@@ -186,6 +238,18 @@ extension LSSceneViewController: ARSCNViewDelegate {
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+        
+        if  let arenaAnchorNode = arenaAnchorNode,
+            node == arenaAnchorNode {
+            let positionInNode = arenaAnchorNode.convertPosition(arenaPositionInScene ?? SCNVector3.init(),
+                                                                 from: scene.rootNode)
+            let transformInNode = arenaAnchorNode.convertTransform(arenaTransformInScene ?? SCNMatrix4.init(),
+                                                                   from: scene.rootNode)
+            
+            arena?.position = positionInNode
+            arena?.transform = transformInNode
+        }
+        
     }
 }
 

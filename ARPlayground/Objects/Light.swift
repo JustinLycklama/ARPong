@@ -73,14 +73,15 @@ class Light: SCNNode {
     // The fragment related to a pair of KeyFrames
     var fragments = [KeyFrameKey : LightFragmentContainer]()
     
-    private let speed: SCNFloat = 0.05
-    private let raduis: CGFloat = 0.005
+//    private let speed: SCNFloat = 1.05
+    private let raduis: CGFloat = 0.05
     private let color: UIColor = .red
     
     init(initialPosition: SCNVector3, direction: SCNVector3) {
         super.init()
         
-        let movement = direction.normalized * speed
+        // The starting position for a light beam has two key frames, inches apart
+        let movement = direction.normalized * minDistanceDeleteThreshold
         keyFrames.append(LightFragmentKeyFrame(position: initialPosition + movement, direction: nil))
         
         keyFrames.append(LightFragmentKeyFrame(position: initialPosition, direction: direction))
@@ -110,7 +111,7 @@ class Light: SCNNode {
         return nil
     }
     
-    let maxDistance: SCNFloat = 0.1
+    let maxDistance: SCNFloat = 1
     let minDistanceDeleteThreshold: SCNFloat = 0.001
     
     // Perform movement. Update the virtual positions of the light
@@ -132,9 +133,9 @@ class Light: SCNNode {
                 
                 if incrementalDistance + thisDistance > maxDistance {
                     
-                    NSLog("This fragment hits our max total. Reduce!")
-                    NSLog("Inc Distance " + String(incrementalDistance))
-                    NSLog("This Distance " + String(thisDistance))
+//                    NSLog("This fragment hits our max total. Reduce!")
+//                    NSLog("Inc Distance " + String(incrementalDistance))
+//                    NSLog("This Distance " + String(thisDistance))
 
                     // Move this end point up to be our total distance, and set its direction vector
                     let remainingDistance = maxDistance - incrementalDistance
@@ -161,10 +162,6 @@ class Light: SCNNode {
     private func removeFragments(lastKeyFramePosition position: Int) {
         guard position < keyFrames.count else {
             return
-        }
-        
-        if position > 0 {
-            NSLog("We are actually removing elements. " + String(position))
         }
         
         for i in 0..<position {
@@ -194,11 +191,11 @@ class Light: SCNNode {
         
         keyFrames.append(LightFragmentKeyFrame(position: newFragPosition, direction: direction))
         
-        NSLog("Start")
-        for keyFrame in keyFrames {
-            NSLog(keyFrame.direction?.description() ?? "nil")
-        }
-        NSLog("End")
+//        NSLog("Start")
+//        for keyFrame in keyFrames {
+//            NSLog(keyFrame.direction?.description() ?? "nil")
+//        }
+//        NSLog("End")
     }
     
     // Update the Node objects to reflect our virtual positions

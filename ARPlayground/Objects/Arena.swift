@@ -42,23 +42,22 @@ class Arena: SCNNode {
 
 //    private var anchor: ARPlaneAnchor
     
+//    private let position: SCNVector3
     private var planes: [LSPlane] = []
     
     let lightNode: Light
     
     let player: Player
     
-    init(anchor: ARPlaneAnchor, player: Player) {
+    // X, Y, Z
+    public let dimensions: SCNVector3 = SCNVector3(3, 3, 10)
+    
+    init(player: Player) {
 
         self.player = player
-        lightNode = Light(initialPosition: SCNVector3(0, 0.3 / 2.0, 0), direction: SCNVector3(0.5, 1, 0.5))
+        lightNode = Light(initialPosition: SCNVector3(0, dimensions.y / 2, 0), direction: SCNVector3(0.5, 1, 0.5))
         
         super.init()
-  
-        // X, Y, Z
-        let dimensions: SCNVector3 = SCNVector3(10, 2, 2)
-        
-        self.position = player.phone.position
         
         let origin = SCNVector3.init()
         
@@ -86,11 +85,6 @@ class Arena: SCNNode {
 
         planes.append(leftWall)
         addChildNode(leftWall)
-        
-        let leftWallNorm = LightFragment(startPoint: leftWall.position, endPoint: leftWall.position + leftWall.parentFront.normalized * 0.1, radius: 0.005, color: .yellow)
-        
-        addChildNode(leftWallNorm)
-
         
         // Right Wall
         let rightWall = LSPlane(width: CGFloat(dimensions.z), height: CGFloat(dimensions.y))
@@ -125,8 +119,8 @@ class Arena: SCNNode {
     let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
     
     public func update(deltaTime: TimeInterval) {
-        let ceil: Float = 0.05
-        let speed: Float = 0.15
+        let ceil: Float = 0.5
+        let speed: Float = 50.0
         
         // Don't let movement get too crazy
         let movement = min(ceil, speed * Float(deltaTime))
@@ -181,19 +175,17 @@ class Arena: SCNNode {
             
             if let collisionInfo = collision(plane: plane, a: a, b: b) {
                 collisionDataList.append((collisionInfo))
-
-                NSLog("Collision")
             }
         }
         
-        if !(player.phone == ignoringPlane),
-            let collisionInfo = collision(plane: player.phone, a: a, b: b) {
-            collisionDataList.append((collisionInfo))
+        if !Platform.isSimulator {
+            if !(player.phone == ignoringPlane),
+                let collisionInfo = collision(plane: player.phone, a: a, b: b) {
+                collisionDataList.append((collisionInfo))
 
-            NSLog("Phone Collision")
-
-            DispatchQueue.main.async { [weak self] in
-                self?.feedbackGenerator.impactOccurred()
+                DispatchQueue.main.async { [weak self] in
+                    self?.feedbackGenerator.impactOccurred()
+                }
             }
         }
         
@@ -223,6 +215,9 @@ class Arena: SCNNode {
         let t = (planeNormal.dotProduct(planePoint) - planeNormal.dotProduct(a)) / planeNormalDotLineDirection
         
         if t >= 0 && t <= 1 {
+            
+            NSLog("T: " + String(t))
+            
             let collisionPoint = a + ((b - a) * t * (1 - Light.standardErrorOffset))
             
             // Now that we have our collision point, lets see if it falls within the plane construction
@@ -230,6 +225,7 @@ class Arena: SCNNode {
             
             if abs(vectorToCollision.dotProduct(plane.heightVector.normalized)) > plane.heightVector.magnitude ||
                 abs(vectorToCollision.dotProduct(plane.widthVector.normalized)) > plane.widthVector.magnitude {
+                
                 return nil
             }
             

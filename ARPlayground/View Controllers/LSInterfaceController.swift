@@ -66,7 +66,10 @@ class LSInterfaceController: UIViewController {
     }
     
     // MARK: - Public
-    public func enablePlaceArena(bool: Bool) {
-        placeArenaButton.isEnabled = bool
+    public func enablePlaceArena(_ bool: Bool) {
+        DispatchQueue.main.async {
+            self.placeArenaButton.isEnabled = bool
+            self.placeArenaButton.isHidden = !bool
+        }
     }
 }

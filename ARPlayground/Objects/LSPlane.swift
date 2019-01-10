@@ -15,13 +15,13 @@ class LSPlane: SCNNode {
     
     public var heightVector: SCNVector3 {
         get {
-            return SCNVector3(0, 0, planeGeometry.height)
+            return self.parentUp.normalized * SCNFloat(planeGeometry.height)
         }
     }
     
     public var widthVector: SCNVector3 {
         get {
-            return SCNVector3(planeGeometry.width, 0, 0)
+            return self.parentRight.normalized * SCNFloat(planeGeometry.width)
         }
     }
     
