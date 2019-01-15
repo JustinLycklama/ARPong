@@ -9,17 +9,11 @@
 import UIKit
 import ARKit
 
-class Player {
-    var phone: LSPlane
+// TODO: Player will exist inside the arena.
+// User is the creator of the experience, the phone before the Arena is created
+class Player: User {
     
-    init(width: SCNFloat, height: SCNFloat) {
-        phone = LSPlane(width: 0.1, height: 0.1)
-    }
-    
-    public func update(position: SCNVector3, transformation: SCNMatrix4) {
-        phone.position = position
-        phone.transform = transformation
-    }
+
 }
 
 struct CollisionData {
@@ -48,14 +42,16 @@ class Arena: SCNNode {
     let lightNode: Light
     
     let player: Player
+    var playerHitTime: TimeInterval?
+    let playerTimeHitReset = TimeInterval(2) // Can hit every 2 seconds
     
     // X, Y, Z
-    public let dimensions: SCNVector3 = SCNVector3(3, 3, 10)
+    public let dimensions: SCNVector3 = SCNVector3(2, 2, 6)
     
     init(player: Player) {
 
         self.player = player
-        lightNode = Light(initialPosition: SCNVector3(0, dimensions.y / 2, 0), direction: SCNVector3(0.5, 1, 0.5))
+        lightNode = Light(initialPosition: SCNVector3(0, dimensions.y / 2, 0), direction: SCNVector3(0.5, 0, 0.5))
         
         super.init()
         
@@ -120,7 +116,7 @@ class Arena: SCNNode {
     
     public func update(deltaTime: TimeInterval) {
         let ceil: Float = 0.5
-        let speed: Float = 50.0
+        let speed: Float = 2.5
         
         // Don't let movement get too crazy
         let movement = min(ceil, speed * Float(deltaTime))
@@ -179,12 +175,21 @@ class Arena: SCNNode {
         }
         
         if !Platform.isSimulator {
-            if !(player.phone == ignoringPlane),
-                let collisionInfo = collision(plane: player.phone, a: a, b: b) {
-                collisionDataList.append((collisionInfo))
-
-                DispatchQueue.main.async { [weak self] in
-                    self?.feedbackGenerator.impactOccurred()
+            
+            let currentInterval = Date().timeIntervalSince1970
+            
+            if playerHitTime == nil ||
+                Double(playerHitTime ?? 0) < Double(currentInterval) - Double(playerTimeHitReset) {
+                let localPlayerPlane = player.plane(relativeTo: self)
+                if !(localPlayerPlane == ignoringPlane),
+                    let collisionInfo = collision(plane: localPlayerPlane, a: a, b: b) {
+                    collisionDataList.append((collisionInfo))
+                    
+                    playerHitTime = currentInterval
+                     
+                    DispatchQueue.main.async { [weak self] in
+                        self?.feedbackGenerator.impactOccurred()
+                    }
                 }
             }
         }

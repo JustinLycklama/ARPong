@@ -21,6 +21,45 @@ protocol LSSceneDelegate {
     func requestResetExperience()
 }
 
+class User {
+    private let phone: LSPlane
+    private let sceneNode: SCNNode
+    
+    init(width: CGFloat, height: CGFloat, sceneNode: SCNNode) {
+        phone = LSPlane(width: width, height: height)
+        self.sceneNode = sceneNode
+    }
+    
+    // The position and transform Within The Scene
+    public func update(position: SCNVector3, transformation: SCNMatrix4) {
+        phone.position = position
+        phone.transform = transformation
+    }
+    
+    public func scenePosition(relativeTo node: SCNNode? = nil) -> SCNVector3 {
+        return phone.position
+    }
+    
+    public func sceneTransformation(relativeTo node: SCNNode? = nil) -> SCNMatrix4 {
+        return phone.transform
+    }
+    
+    public func plane(relativeTo node: SCNNode? = nil) -> LSPlane {
+        
+        let newPlane = LSPlane(width: phone.width, height: phone.height)
+        
+        if let newPos = node?.convertPosition(phone.position, from: sceneNode) {
+            newPlane.position = newPos
+        }
+        
+        if let newTrans = node?.convertTransform(phone.transform, from: sceneNode) {
+            newPlane.transform = newTrans
+        }
+        
+        return newPlane
+    }
+}
+
 class LSSceneViewController: UIViewController {
     let scene = SCNScene()
     
@@ -44,7 +83,7 @@ class LSSceneViewController: UIViewController {
 
     fileprivate var lastUpdateDate: TimeInterval?
     
-    var arenaAnchorNode: SCNNode?
+    var arenaAnchorNode: SCNNode? = nil
     var planesMap = [UUID : LSPlane]()
     
     // MARK: Debug
@@ -54,7 +93,7 @@ class LSSceneViewController: UIViewController {
     // MARK: - View Lifecycle
     required init?(coder aDecoder: NSCoder) {
 
-        player = Player(width: 0, height: 0)
+        player = Player(width: 1, height: 1, sceneNode: scene.rootNode)
         focusSquare = FocusSquare()
         
         interfaceController = LSInterfaceController()
@@ -162,7 +201,8 @@ extension LSSceneViewController: LSSceneDelegate {
     
     func requestCreateArena() {
         
-        requestResetExperience()
+        self.arena?.removeFromParentNode()
+        self.arena = nil
         
         let arena = Arena(player: player)
         
@@ -172,21 +212,34 @@ extension LSSceneViewController: LSSceneDelegate {
         
         self.arena = arena
         
-        arenaPositionInScene = player.phone.position
-        arenaTransformInScene = player.phone.transform
+        
+        
+
         
 
         if let arenaAnchorNode = arenaAnchorNode {
-            arenaAnchorNode.addChildNode(arena)
+
+            let anchorPosInScenePos = scene.rootNode.convertPosition(arenaAnchorNode.position, from: arenaAnchorNode.parent)
             
+
+            arenaPositionInScene = SCNVector3(player.scenePosition().x, anchorPosInScenePos.y, player.scenePosition().z)
+            arenaTransformInScene = player.sceneTransformation()
             
             let positionInNode = arenaAnchorNode.convertPosition(arenaPositionInScene ?? SCNVector3.init(),
                                                                  from: scene.rootNode)
             let transformInNode = arenaAnchorNode.convertTransform(arenaTransformInScene ?? SCNMatrix4.init(),
                                                                    from: scene.rootNode)
             
+            let subNode = SCNNode()
+            arenaAnchorNode.addChildNode(subNode)
+            subNode.transform = transformInNode
+            
+            
             arena.position = positionInNode
-            arena.transform = transformInNode
+            arena.rotation = SCNVector4(0, subNode.rotation.y, 0, subNode.rotation.w)
+            
+            arenaAnchorNode.addChildNode(arena)
+            subNode.removeFromParentNode()
         } else {
             scene.rootNode.addChildNode(arena)
             
@@ -239,16 +292,24 @@ extension LSSceneViewController: ARSCNViewDelegate {
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         
-        if  let arenaAnchorNode = arenaAnchorNode,
-            node == arenaAnchorNode {
-            let positionInNode = arenaAnchorNode.convertPosition(arenaPositionInScene ?? SCNVector3.init(),
-                                                                 from: scene.rootNode)
-            let transformInNode = arenaAnchorNode.convertTransform(arenaTransformInScene ?? SCNMatrix4.init(),
-                                                                   from: scene.rootNode)
-            
-            arena?.position = positionInNode
-            arena?.transform = transformInNode
-        }
+//        if arena != nil,
+//            let arenaAnchorNode = arenaAnchorNode,
+//            node == arenaAnchorNode {
+//
+//            let positionInNode = arenaAnchorNode.convertPosition(arenaPositionInScene ?? SCNVector3.init(),
+//                                                                 from: scene.rootNode)
+//            let transformInNode = arenaAnchorNode.convertTransform(arenaTransformInScene ?? SCNMatrix4.init(),
+//                                                                   from: scene.rootNode)
+//
+//            let subNode = SCNNode()
+//            arenaAnchorNode.addChildNode(subNode)
+//            subNode.transform = transformInNode
+//
+//            arena?.position = positionInNode
+//            arena?.rotation = SCNVector4(0, subNode.rotation.y, 0, subNode.rotation.w)
+//
+//            subNode.removeFromParentNode()
+//        }
         
     }
 }
@@ -312,11 +373,6 @@ extension LSSceneViewController: ARSessionDelegate {
 // MARK: - SCNSceneRendererDelegate
 extension LSSceneViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        
-        guard let arena = arena else {
-            return
-        }
-        
         guard let last = lastUpdateDate else {
             lastUpdateDate = time
             return
@@ -324,36 +380,49 @@ extension LSSceneViewController: SCNSceneRendererDelegate {
         
         let delta = time - last
         
-        // Update Player
+        // Update User
         if let pointOfViewTransformation = sceneView.pointOfView?.transform,
             let parentPosition = sceneView.pointOfView?.position {
-            let newTransform = arena.convertTransform(pointOfViewTransformation, from: sceneView.pointOfView?.parent)
-            let newPos = arena.convertPosition(parentPosition, from: sceneView.pointOfView?.parent)
+            
+            let newTransform = scene.rootNode.convertTransform(pointOfViewTransformation, from: sceneView.pointOfView?.parent)
+            let newPos = scene.rootNode.convertPosition(parentPosition, from: sceneView.pointOfView?.parent)
             
             player.update(position: newPos, transformation: newTransform)
         }
         
+        // TODO Update player_S_
+        // Update Player
+//        if let arena = self.arena,
+//            let pointOfViewTransformation = sceneView.pointOfView?.transform,
+//            let parentPosition = sceneView.pointOfView?.position {
+//            let newTransform = arena.convertTransform(pointOfViewTransformation, from: sceneView.pointOfView?.parent)
+//            let newPos = arena.convertPosition(parentPosition, from: sceneView.pointOfView?.parent)
+//
+//            player.update(position: newPos, transformation: newTransform)
+//        }
+        
         // Update Focus Aquare
         
-        if let parentTransform = sceneView.pointOfView?.transform,
-            let parentPosition = sceneView.pointOfView?.position {
-            let newTransform = arena.convertTransform(parentTransform, from: sceneView.pointOfView?.parent)
-            let newPos = arena.convertPosition(parentPosition, from: sceneView.pointOfView?.parent)
-            
-            self.focusSquare.position = newPos
-            self.focusSquare.transform = newTransform
-            
-            
-            
-            //            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
-        }
+//        if let arena = self.arena,
+//            let parentTransform = sceneView.pointOfView?.transform,
+//            let parentPosition = sceneView.pointOfView?.position {
+//            let newTransform = arena.convertTransform(parentTransform, from: sceneView.pointOfView?.parent)
+//            let newPos = arena.convertPosition(parentPosition, from: sceneView.pointOfView?.parent)
+//
+//            self.focusSquare.position = newPos
+//            self.focusSquare.transform = newTransform
+//
+//
+//
+//            //            NSLog(String(newVec.x), String(newVec.y), String(newVec.z))
+//        }
         
         //        DispatchQueue.main.async {
         //            self.updateFocusSquare()
         //        }
         
         // Update Arena
-        arena.update(deltaTime: delta)
+        arena?.update(deltaTime: delta)
         
         lastUpdateDate = time
     }

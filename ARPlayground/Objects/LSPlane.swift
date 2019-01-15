@@ -13,6 +13,18 @@ class LSPlane: SCNNode {
 
     private var planeGeometry: SCNPlane
     
+    public var width: CGFloat {
+        get  {
+            return planeGeometry.width
+        }
+    }
+    
+    public var height: CGFloat {
+        get {
+            return planeGeometry.height
+        }
+    }
+    
     public var heightVector: SCNVector3 {
         get {
             return self.parentUp.normalized * SCNFloat(planeGeometry.height)
